@@ -27,6 +27,12 @@ class wechat {
 	* loginUrl 扫描二维码并确认后返回的登录url
 	**/
 	private $loginUrl = '';
+
+	/**
+	* toLingUrl 图灵机器人api
+	**/
+	private $tlApi = 'http://www.tuling123.com/openapi/api';
+	private $tlAppkey = '820176b52352471a943d73a8c304ad32';
 	
 	/**
 	 * 发起GET请求
@@ -58,8 +64,10 @@ class wechat {
 	 * @param array $data
 	 * @return string
 	 */
-	public function post($url, $data = '', $cookie = '')
+	public function post($url, $data = '', $cookie = '', $type = 0)
 	{
+		
+ 
 	    $ch = curl_init();
 	    curl_setopt($ch, CURLOPT_URL, $url);
 	    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 对认证证书来源的检查  
@@ -68,11 +76,18 @@ class wechat {
 	    curl_setopt($ch, CURLOPT_HEADER, 0);
 	    if($cookie){
 	    	curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie);
+	    	curl_setopt ($ch, CURLOPT_REFERER,'https://wx.qq.com');
 	    }
+	    if($type){
+	    	$header = array(
+            'Content-Type: application/json',
+        	);
+	    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+	    }
+	    
 	    curl_setopt($ch, CURLOPT_POST, 1);
 	    curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
 	    curl_setopt($ch, CURLOPT_SAFE_UPLOAD, 0);
-	    curl_setopt ($ch, CURLOPT_REFERER,'https://wx.qq.com/');
 	    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 	    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 	    $output = curl_exec($ch);
@@ -161,7 +176,13 @@ class wechat {
         //正则匹配出wxuin、wxsid
         preg_match('/wxuin=(.*);/iU',$content,$uin); 
         preg_match('/wxsid=(.*);/iU',$content,$sid);
-        session_start();
+        preg_match('/webwx_data_ticket=(.*);/iU',$content,$webwx);
+        //@TODO将wxuin、wxsid、webwx_data_ticket存入cookies，以便获取微信头像----暂无效 
+        /*setcookie('webwx_data_ticket',$webwx[1]);
+        setcookie('wxuin',$uin[1]);
+        setcookie('wxsid',$sid[1]);*/
+        //将wxuin、wxsid、webwx_data_ticket存入session
+        
         $_SESSION['uin'] = $uin[1];
         $_SESSION['sid'] = $sid[1];
         $wxinfo = array(
@@ -182,8 +203,8 @@ class wechat {
 	public function initWebchat($uin = '', $sid = ''){
 		$cookie_jar = dirname(__FILE__)."/pic.cookie";
 		$url = sprintf("https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit?r=%s", $this->getMillisecond());
+		
 		if(!$uin || !$sid){
-			 session_start();
 			  $uin = $_SESSION['uin'];
         	  $sid = $_SESSION['sid'];
 		}
@@ -194,7 +215,120 @@ class wechat {
 			'DeviceID' => 'e189320295398756'
 			);
 		$res = $this->post($url, json_encode($data),$cookie_jar);
-		print_r($res);
+		//将登陆用户username、nickname存入session中
+		$user = json_decode($res, true);
+		$_SESSION['username'] = $user['User']['UserName'];
+		$_SESSION['nickname'] = $user['User']['NickName'];
+
 		return $res;
+	}
+
+	/**
+	* 获取全部联系人
+	* @access public
+	* @param $uin string 用户uin
+	* @param $sid string 用户sid
+	* @return mixed
+	**/
+	public function getContact($uin = '', $sid = ''){
+		$cookie_jar = dirname(__FILE__)."/pic.cookie";
+		$url = sprintf("https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact?lang=zh_CN&r=%s&seq=0", $this->getMillisecond());
+		if(!$uin || !$sid){
+			 
+			  $uin = $_SESSION['uin'];
+        	  $sid = $_SESSION['sid'];
+		}
+		
+		$res = $this->post($url, '{}',$cookie_jar);
+		return $res;
+	}
+
+
+	/**
+	* 登录成功，保持与服务器的信息同步，获取是否有推送消息等
+	* @access public
+	* @param $synckey string 
+	* @return mixed
+	**/
+	public function wxsync($synckey){
+		
+	    $uin = $_SESSION['uin'];
+	    $sid = $_SESSION['sid'];
+		$cookie_jar = dirname(__FILE__)."/pic.cookie";
+		$url = sprintf("https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync?sid=%s", $sid);
+		
+		$data['BaseRequest'] = array(
+			'Uin' => $uin,
+			'Sid' => $sid,
+			'Skey' => '',
+			'DeviceID' => 'e189320295398756'
+			);
+		$data['SyncKey'] = json_decode($synckey);
+		$data['rr'] = time();
+		$res = $this->post($url, json_encode($data),$cookie_jar);
+		return $res;
+	}
+
+	/**
+	* 发送消息
+	* @access public
+	* @param $toUsername string 
+	* @return mixed
+	**/
+	public function sendMessage($toUsername = '', $content = ''){
+		
+	    $uin = $_SESSION['uin'];
+	    $sid = $_SESSION['sid'];
+		$cookie = dirname(__FILE__)."/pic.cookie";
+		$url = sprintf("https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg?sid=%s&r=%s",$sid,$this->getMillisecond());
+		
+		$data['BaseRequest'] = array(
+			'Uin' => $uin,
+			'Sid' => $sid,
+			'Skey' => "",
+			'DeviceID' => "e287276317582836"
+			);
+		$data['Msg'] = array(
+			'ClientMsgId' => $this->getMillisecond(),
+			'Content' => $content,
+			'FromUserName' => $_SESSION['username'],
+			'LocalID' => $this->getMillisecond(),
+			'ToUserName' => $toUsername,
+			'Type' => 1
+			);
+		$data['Scene'] = 0;
+		//json_encode   JSON_UNESCAPED_UNICODE防止将汉字转义为unicode字符
+		$res = $this->post($url, json_encode($data,JSON_UNESCAPED_UNICODE),$cookie);
+		return $res;
+	}
+
+	/**
+	* 图灵机器人 =》文本
+	* @access public
+	* @param $toUsername string 
+	* @return mixed
+	**/
+	public function sendMessageToTuling($content = ''){
+		$data = array(
+			'key' => $this->tlAppkey,
+			'info' => $content,
+			);
+		$res = $this->post($this->tlApi,json_encode($data,JSON_UNESCAPED_UNICODE),'',1);
+		$r = json_decode($res,true);
+		//文本类
+		return $r['text'];
+
+		
+	}
+
+	//转换为UTF-8
+	public function characet($data){
+	  if( !empty($data) ){
+	    $fileType = mb_detect_encoding($data , array('UTF-8','GBK','LATIN1','BIG5')) ;
+	    if( $fileType != 'UTF-8'){
+	      $data = mb_convert_encoding($data ,'utf-8' , $fileType);
+	    }
+	  }
+	  return $data;
 	}
 }

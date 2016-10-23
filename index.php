@@ -2,6 +2,7 @@
 require_once ('src/wechat.php');
 $wechat = new wechat();
 $act = isset($_GET['act'])?$_GET['act']:'index';
+session_start();
 //$wechat->getLoginStatus();die;
 switch ($act) {
   case 'index':
@@ -41,8 +42,42 @@ switch ($act) {
   case 'init':
     //初使化微信信息
     $json_info = $wechat->initWebchat();
-    //$userinfo = json_decode($json_info,true);
-    //exit($json_info);
+    exit($json_info);
+    break;
+  case 'users':
+  //获取所有好友列表
+    $users = $wechat->getContact();
+    echo $users;
+    break;
+  case 'sync':
+  //服务器同步
+    $synckey = $_POST['synckey'];
+    $message = $wechat->wxsync($synckey);
+    
+    exit($message);
+    break;
+  case 'send':
+    $toUsername = $_POST['toUsername'];
+    $content = $_POST['content'];
+
+    $res = $wechat->sendMessage($toUsername, $content);
+    exit($res);
+    break;
+  case 'tuling':
+    //图灵机器人接管消息
+    $toUsername = $_POST['toUsername'];
+    $content = $_POST['content'];
+
+    if($toUsername != $_SESSION['username']){
+      $mes = $wechat->sendMessageToTuling($content);
+      $res = $wechat->sendMessage($toUsername, $mes);
+      //拼接上机器人的回话
+      $tlCon = json_decode($res,true);
+      $tlCon['tlc'] = $mes;
+      $tlCon['status'] = 1;
+      exit(json_encode($tlCon));
+    }
+    exit(json_encode(array('status' => 0)));
     break;
   default:
     # code...
