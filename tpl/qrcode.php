@@ -16,7 +16,8 @@
 //将用户uuid存入本地缓存
 var uuid = "<?php echo $uuid; ?>";
 sessionStorage.uuid = uuid;
-var state = setInterval("getLoginStatus()",1000);
+getLoginStatus();
+//var state = setInterval("getLoginStatus()",3000);
 function getLoginStatus(){
   $.ajax({
 	  url: 'index.php?act=status&uuid=' + uuid,
@@ -24,9 +25,10 @@ function getLoginStatus(){
 	  dataType: 'json',
 	  success: function(data){
 	  		if(data.status == 1){
+	  			getLoginStatus();
 	  			$(".notice").html('扫描成功，请确认登录');
 	  		}else if (data.status == 2) {
-	  			clearInterval(state);
+	  			//clearInterval(state);
 	  			//&fun=new&version=v2&lang=zh_CN 不加的话会返回1101错误代码
 	  			$.post('index.php?act=cookies',{url:data.msg + '&fun=new&version=v2&lang=zh_CN'},function(res){
 	  				console.log(res);
@@ -41,10 +43,12 @@ function getLoginStatus(){
 	  			//window.location.href = 'index.php?act=cookies&url=' + data.msg;
 
 	  		}else{
+	  			getLoginStatus();
 	  			$(".notice").html('请扫描二维码确认登录');
 	  		}
 	  },
 	  error: function(data){
+	  	getLoginStatus();
 	  	console.log('error');
 	  }
   

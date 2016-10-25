@@ -312,10 +312,15 @@ class wechat {
 		$data = array(
 			'key' => $this->tlAppkey,
 			'info' => $content,
+			'userid' => '123456789'
 			);
 		$res = $this->post($this->tlApi,json_encode($data,JSON_UNESCAPED_UNICODE),'',1);
 		$r = json_decode($res,true);
 		//文本类
+		if(isset($r['url'])){
+			//存在链接则发送链接
+			return $r['url'];
+		}
 		return $r['text'];
 
 		

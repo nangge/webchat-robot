@@ -67,7 +67,8 @@ ul {
 .m-card .name {
     display:inline-block;
     margin:0 0 0 15px;
-    font-size:1pc
+    font-size:1pc;
+    overflow: hidden;
 }
 .m-card .search {
     padding:0 10px;
@@ -102,7 +103,8 @@ ul {
 }
 .m-list .name {
     display:inline-block;
-    margin:0 0 0 15px
+    margin:0 0 0 15px;
+    overflow: hidden;
 }
 .m-text {
     height:10pc;

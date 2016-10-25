@@ -14,7 +14,7 @@
                 <input class="search" placeholder="查找好友">
             </footer>
         </div>
-        <div class="m-list">
+        <div class="m-list" style="overflow-y: scroll;height: calc(100% - 10pc);">
         	<ul>
         	</ul>
         </div>
@@ -50,13 +50,14 @@ $(function(){
 			data : {},
 			success : function(data){
 				var res = JSON.parse(data);
+
 				//将synckey存入本地缓存，后续步骤需要
 				synckey =  JSON.stringify(res.SyncKey);//json 串形式存入
 				sessionStorage.synckey = synckey;
-				mname = res.User.UserName;
-				sessionStorage.nickname = mname;
+				muname = res.User.UserName;
+				sessionStorage.username = muname;
 				mnickname = res.User.NickName;
-				sessionStorage.username = mnickname;
+				sessionStorage.nickname = mnickname;
 				//登陆用户信息
 				var ustr = '<header>'
                 +'<img class="avatar" width="40" height="40" alt="Coffce" src="static/images/nango.jpg">'

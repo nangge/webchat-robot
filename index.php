@@ -67,7 +67,6 @@ switch ($act) {
     //图灵机器人接管消息
     $toUsername = $_POST['toUsername'];
     $content = $_POST['content'];
-
     if($toUsername != $_SESSION['username']){
       $mes = $wechat->sendMessageToTuling($content);
       $res = $wechat->sendMessage($toUsername, $mes);
