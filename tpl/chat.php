@@ -49,6 +49,7 @@ $(function(){
 			type : 'post',
 			data : {},
 			success : function(data){
+
 				var res = JSON.parse(data);
 
 				//将synckey存入本地缓存，后续步骤需要
@@ -121,8 +122,10 @@ $(function(){
 	//获取好友列表结束
 
 
-	var sync = setInterval("syncWx()",1000);
-	syncWx = function (){
+	//var sync = setInterval("syncWx()",1000);
+	sync();
+	function sync(){
+		//syncWx = function (){
 		//同步服务器信息，轮训查询是否有新消息等
 		if(!synckey){
 			synckey = sessionStorage.synckey;
@@ -141,7 +144,7 @@ $(function(){
 				//sessionStorage.synckey = synckey;
 				if(res.BaseResponse.Ret != 0){
 					alert('与微信服务器通讯出错，请刷新重试或重新扫码登陆！');
-					clearInterval(sync);
+					//clearInterval(sync);
 				}else if (res.AddMsgCount) {
 					var str = '';
 					var messagelist = res.AddMsgList;
@@ -181,14 +184,18 @@ $(function(){
 					$(".m-message ul").append(str);
 				    //滚动到底部
 				    $(".m-message").scrollTop($('.m-message ul')[0].scrollHeight);
+				    sync();
 				}
+				
 			},
 			error : function(data){
 				console.log(data);
 			}
 		})
 
+	//}
 	}
+	
 
 	//好友列表点击事件
 	$(".m-list ul").on('click','li',function(){

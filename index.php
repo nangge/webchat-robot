@@ -3,7 +3,8 @@ require_once ('src/wechat.php');
 $wechat = new wechat();
 $act = isset($_GET['act'])?$_GET['act']:'index';
 session_start();
-//$wechat->getLoginStatus();die;
+/*$res = $wechat->getLoginStatus();
+print_r($res);die;*/
 switch ($act) {
   case 'index':
     //登录页

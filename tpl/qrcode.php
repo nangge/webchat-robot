@@ -8,6 +8,7 @@
   <script type="text/javascript" src='static/jquery-1.7.2.js'></script>
 </head>
 <body>
+  <h3 align="center">让你的微信成为智能机器人</h3>
   <p align="center"><img src="<?php echo $qrcode; ?>" /></p>
   <p align="center" class="notice">请扫描二维码登录</p>
   <form action="index.php?act=cookies" method="post"><input type="hidden" name="url" value=""></form>
@@ -40,11 +41,10 @@ function getLoginStatus(){
 					//获取成功，跳转
 					window.location.href = 'index.php?act=chat';
 	  			},'json')
-	  			//window.location.href = 'index.php?act=cookies&url=' + data.msg;
-
+	  			
 	  		}else{
-	  			getLoginStatus();
 	  			$(".notice").html('请扫描二维码确认登录');
+	  			getLoginStatus();
 	  		}
 	  },
 	  error: function(data){

@@ -66,8 +66,6 @@ class wechat {
 	 */
 	public function post($url, $data = '', $cookie = '', $type = 0)
 	{
-		
- 
 	    $ch = curl_init();
 	    curl_setopt($ch, CURLOPT_URL, $url);
 	    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 对认证证书来源的检查  
@@ -117,6 +115,7 @@ class wechat {
 		$url = 'https://login.weixin.qq.com/jslogin?appid=wx782c26e4c19acffb&redirect_uri=https%3A%2F%2Fwx.qq.com%2Fcgi-bin%2Fmmwebwx-bin%2Fwebwxnewloginpage&fun=new&lang=zh_CN&_='.$this->getMillisecond();
 		$str = $this->get($url);
 		preg_match('/"(.*?)"/',$str,$match);
+		$_SESSION['uuid'] = $match[1];
 		return $match[1]; 
 	}
 
@@ -155,7 +154,7 @@ class wechat {
 	* @return array
 	**/
 	public function getCookies($url){
-       	$cookie_jar = dirname(__FILE__)."/pic.cookie";
+       	$cookie_jar = dirname(__FILE__)."/".$_SESSION['uuid'].".cookie";
        
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 对认证证书来源的检查  
@@ -201,7 +200,7 @@ class wechat {
 	* @return mixed
 	**/
 	public function initWebchat($uin = '', $sid = ''){
-		$cookie_jar = dirname(__FILE__)."/pic.cookie";
+		$cookie_jar = dirname(__FILE__)."/".$_SESSION['uuid'].".cookie";
 		$url = sprintf("https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit?r=%s", $this->getMillisecond());
 		
 		if(!$uin || !$sid){
@@ -231,7 +230,7 @@ class wechat {
 	* @return mixed
 	**/
 	public function getContact($uin = '', $sid = ''){
-		$cookie_jar = dirname(__FILE__)."/pic.cookie";
+		$cookie_jar = dirname(__FILE__)."/".$_SESSION['uuid'].".cookie";
 		$url = sprintf("https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact?lang=zh_CN&r=%s&seq=0", $this->getMillisecond());
 		if(!$uin || !$sid){
 			 
@@ -254,7 +253,7 @@ class wechat {
 		
 	    $uin = $_SESSION['uin'];
 	    $sid = $_SESSION['sid'];
-		$cookie_jar = dirname(__FILE__)."/pic.cookie";
+		$cookie_jar = dirname(__FILE__)."/".$_SESSION['uuid'].".cookie";
 		$url = sprintf("https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsync?sid=%s", $sid);
 		
 		$data['BaseRequest'] = array(
@@ -279,7 +278,7 @@ class wechat {
 		
 	    $uin = $_SESSION['uin'];
 	    $sid = $_SESSION['sid'];
-		$cookie = dirname(__FILE__)."/pic.cookie";
+		$cookie = dirname(__FILE__)."/".$_SESSION['uuid'].".cookie";
 		$url = sprintf("https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg?sid=%s&r=%s",$sid,$this->getMillisecond());
 		
 		$data['BaseRequest'] = array(
