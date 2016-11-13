@@ -47,6 +47,7 @@ $(function(){
 			url : "index.php?act=init",
 			datatype : 'json',
 			type : 'post',
+			async : false,
 			data : {},
 			success : function(data){
 
@@ -108,7 +109,7 @@ $(function(){
         		users[uname] = nickname;
 			}
 			//把登陆用户的信息也附加上
-			users[mname] = mnickname;
+			users[muname] = mnickname;
 
 			sessionStorage.users = JSON.stringify(users);
 			$(".m-list ul").append(str);
@@ -130,6 +131,7 @@ $(function(){
 		if(!synckey){
 			synckey = sessionStorage.synckey;
 		}
+
 		$.ajax({
 			url : "index.php?act=sync",
 			datatype : 'json',
@@ -143,8 +145,8 @@ $(function(){
 				synckey =  JSON.stringify(res.SyncKey);//json 串形式存入
 				//sessionStorage.synckey = synckey;
 				if(res.BaseResponse.Ret != 0){
-					alert('与微信服务器通讯出错，请刷新重试或重新扫码登陆！');
-					//clearInterval(sync);
+					alert('与微信服务器通讯出错，请重新扫码登陆！');
+					window.location.href='index.php';
 				}else if (res.AddMsgCount) {
 					var str = '';
 					var messagelist = res.AddMsgList;
@@ -184,12 +186,16 @@ $(function(){
 					$(".m-message ul").append(str);
 				    //滚动到底部
 				    $(".m-message").scrollTop($('.m-message ul')[0].scrollHeight);
-				    sync();
+				   
 				}
-				
+				//通讯成功再轮询
+				if (res.BaseResponse.Ret == 0){
+				 sync();
+				}
 			},
 			error : function(data){
-				console.log(data);
+				alert('服务器出错，请重新扫码登陆！');
+				window.location.href='index.php';
 			}
 		})
 
@@ -218,7 +224,7 @@ $(function(){
 				return;
 			}
 			if(toUsername == ''){
-				alert('请选择聊天对象！');
+				alert('点击左侧头像，选择聊天对象！');
 				return;
 			}
 
