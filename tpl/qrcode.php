@@ -29,17 +29,21 @@ function getLoginStatus(){
 	  			getLoginStatus();
 	  			$(".notice").html('扫描成功，请确认登录');
 	  		}else if (data.status == 2) {
-	  			//clearInterval(state);
 	  			//&fun=new&version=v2&lang=zh_CN 不加的话会返回1101错误代码
 	  			$.post('index.php?act=cookies',{url:data.msg + '&fun=new&version=v2&lang=zh_CN'},function(res){
 	  				console.log(res);
-	  				//将用户wxuin,wxsid存入本地缓存
-					var wxuin = res.uin;
-					var wxsid = res.sid;
-					sessionStorage.wxuin = wxuin;
-					sessionStorage.wxsid = wxsid;
-					//获取成功，跳转
-					window.location.href = 'index.php?act=chat';
+	  				if (res.status == 0){
+	  					alert(res.msg);
+	  				}else{
+	  					//将用户wxuin,wxsid存入本地缓存
+						var wxuin = res.uin;
+						var wxsid = res.sid;
+						sessionStorage.wxuin = wxuin;
+						sessionStorage.wxsid = wxsid;
+						//获取成功，跳转
+						window.location.href = 'index.php?act=chat';
+	  				}
+	  				
 	  			},'json')
 	  			
 	  		}else{
@@ -49,7 +53,7 @@ function getLoginStatus(){
 	  },
 	  error: function(data){
 	  	getLoginStatus();
-	  	console.log('error');
+	  	console.log('获取登录状态错误');
 	  }
   
 })

@@ -42,6 +42,7 @@ $(function(){
 	var synckey = '';
 	var mname = '';
 	var mnickname = '';
+	var myheadimg = '';
 	//微信初始化
 	$.ajax({
 			url : "index.php?act=init",
@@ -50,7 +51,6 @@ $(function(){
 			async : false,
 			data : {},
 			success : function(data){
-
 				var res = JSON.parse(data);
 
 				//将synckey存入本地缓存，后续步骤需要
@@ -60,9 +60,10 @@ $(function(){
 				sessionStorage.username = muname;
 				mnickname = res.User.NickName;
 				sessionStorage.nickname = mnickname;
+				myheadimg = 'index.php?act=avatar&uri=' + escape(res.User.HeadImgUrl);
 				//登陆用户信息
 				var ustr = '<header>'
-                +'<img class="avatar" width="40" height="40" alt="Coffce" src="static/images/nango.jpg">'
+                +'<img class="avatar" width="40" height="40" alt="Coffce" src="'+ myheadimg +'">'
                 +'<p class="name">'+ res.User.NickName +'</p>'
 	            +'</header>';
 	            $(".m-card").prepend(ustr);
@@ -140,7 +141,6 @@ $(function(){
 			data : {synckey: synckey},
 			success : function(data){
 				var res = JSON.parse(data);
-				
 				//与服务器同步一次synckey就可能 不相同一次，所以每次同步完都将更新key
 				//将synckey存入本地缓存，后续步骤需要
 				synckey =  JSON.stringify(res.SyncKey);//json 串形式存入
@@ -149,39 +149,45 @@ $(function(){
 					alert('与微信服务器通讯出错，请重新扫码登陆！');
 					window.location.href='index.php';
 				}else if (res.AddMsgCount) {
+					console.log(res);
+				
 					var str = '';
 					var messagelist = res.AddMsgList;
 					var users = JSON.parse(sessionStorage.users);
 					for (var key in messagelist) {
-						var fname = messagelist[key].FromUserName;
-						str += '<li>'
-	                    	+'<p class="time"><span></span></p>'
-	                    	+'<div class="main">'
-	                        +'<img class="avatar" width="30" height="30" src="static/images/nango.jpg">'
-	                        +'<div class="nick">'+ users[fname] +'</div>'
-	                        +'<div class="text">'+ messagelist[key].Content +'</div>'
-	                    	+'</div>'
-	                	+'</li>';
-
-	                	//机器人自动回复，不需要注释掉即可
-	                	$.post('index.php?act=tuling',{content:messagelist[key].Content,toUsername:messagelist[key].FromUserName},function(data){
-	                		if(data.status == 0){return ;}
-							if(data.BaseResponse.Ret == 0){
-								var str = '<li>'
+						//StatusNotifyCode=2 为通知消息
+						if (messagelist[key].StatusNotifyCode == 0){
+							var fname = messagelist[key].FromUserName;
+							var uri = "/cgi-bin/mmwebwx-bin/webwxgeticon?seq=620940058&username="+ fname +"&skey=";
+							var userHeadimg = 'index.php?act=avatar&uri=' + escape(uri);
+							str += '<li>'
 		                    	+'<p class="time"><span></span></p>'
 		                    	+'<div class="main">'
-		                        +'<img class="avatar" width="30" height="30" src="http://lorempixel.com/30/30/">'
-		                        +'<div class="nick">机器人</div>'
-		                        +'<div class="text">'+ data.tlc +'</div>'
+		                        +'<img class="avatar" width="30" height="30" src="'+ userHeadimg +'">'
+		                        +'<div class="nick">'+ users[fname] +'</div>'
+		                        +'<div class="text">'+ messagelist[key].Content +'</div>'
 		                    	+'</div>'
-			                	+'</li>';
-								$(".m-message ul").append(str);
-							    //滚动到底部
-							    $(".m-message").scrollTop($('.m-message ul')[0].scrollHeight);
-								}
-					  			},'json')
-	                	//机器人回复结束
+		                	+'</li>';
 
+		                	//机器人自动回复，不需要注释掉即可
+		                	$.post('index.php?act=tuling',{content:messagelist[key].Content,toUsername:messagelist[key].FromUserName},function(data){
+		                		if(data.status == 0){return ;}
+								if(data.BaseResponse.Ret == 0){
+									var str = '<li>'
+			                    	+'<p class="time"><span></span></p>'
+			                    	+'<div class="main self">'
+			                        +'<img class="avatar" width="30" height="30" src="http://lorempixel.com/30/30/">'
+			                        +'<div class="nick">机器人</div>'
+			                        +'<div class="text">'+ data.tlc +'</div>'
+			                    	+'</div>'
+				                	+'</li>';
+									$(".m-message ul").append(str);
+								    //滚动到底部
+								    $(".m-message").scrollTop($('.m-message ul')[0].scrollHeight);
+									}
+						  			},'json')
+		                	//机器人回复结束
+						}
 					}
 					//for end
 					$(".m-message ul").append(str);
@@ -243,8 +249,8 @@ $(function(){
 					if(res.BaseResponse.Ret == 0){
 						var str = '<li>'
                     	+'<p class="time"><span></span></p>'
-                    	+'<div class="main">'
-                        +'<img class="avatar" width="30" height="30" src="static/images/nango.jpg">'
+                    	+'<div class="main self">'
+                        +'<img class="avatar" width="30" height="30" src="'+ myheadimg +'">'
                         +'<div class="nick">'+ sessionStorage.nickname +'</div>'
                         +'<div class="text">'+ text +'</div>'
                     	+'</div>'

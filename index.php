@@ -32,8 +32,9 @@ switch ($act) {
   case 'cookies':
     //获取用户uin 和 sid
     $url = $_POST['url'];
-
     $wxinfo = $wechat->getCookies($url);
+    $wxinfo['status'] = 1;
+    
     exit(json_encode($wxinfo));
     break;
   case 'chat':

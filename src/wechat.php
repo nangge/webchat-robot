@@ -170,11 +170,13 @@ class wechat {
         curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_jar);//获取的cookie 保存到指定的 文件路径
         $content=curl_exec($ch);     
         if(curl_errno($ch)){
-            echo 'Curl error: '.curl_error($ch);exit(); //这里是设置个错误信息的反馈
+        	$info = array('status' => 0, 'msg' => 'Curl error: '.curl_error($ch));
+        	return $info;//这里是设置个错误信息的反馈
          }    
 
         if($content==false){
-            echo "get_content_null";exit();
+            $info = array('status' => 0, 'msg' => '无法获取cookies');
+        	return $info;//这里是设置个错误信息的反馈
         }
          
         //正则匹配出wxuin、wxsid
@@ -188,12 +190,11 @@ class wechat {
 		  }
 		}*/
         //将wxuin、wxsid、webwx_data_ticket存入session
-        
-        $_SESSION['uin'] = $uin[1];
-        $_SESSION['sid'] = $sid[1];
+        $_SESSION['uin'] = @$uin[1];
+        $_SESSION['sid'] = @$sid[1];
         $wxinfo = array(
-        	'uin' => $uin[1],
-        	'sid' => $sid[1]
+        	'uin' => @$uin[1],
+        	'sid' => @$sid[1]
         	);
         curl_close($ch);
         return $wxinfo;
