@@ -64,6 +64,12 @@ switch ($act) {
     $res = $wechat->sendMessage($toUsername, $content);
     exit($res);
     break;
+  case 'avatar':
+    $uri = $_GET['uri'];
+    $res = $wechat->getAvatar($uri);
+    header('Content-Type: image/jpeg');
+    imagejpeg($res);
+    break;
   case 'tuling':
     //图灵机器人接管消息
     $toUsername = $_POST['toUsername'];

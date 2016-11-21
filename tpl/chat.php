@@ -70,9 +70,9 @@ $(function(){
 				var userlist = res.ContactList;	
 				var str = '';
 				for (var key in userlist) {
-					var img = 'http://wx.qq.com' + userlist[key].HeadImgUrl;
+					var img = 'index.php?act=avatar&uri=' + escape(userlist[key].HeadImgUrl);
 					str += '<li class="active" username="'+ userlist[key].UserName +'">'
-	            		+'<img class="avatar" width="30" height="30"  src="http://lorempixel.com/30/30/" />'
+	            		+'<img class="avatar" width="30" height="30"  src="'+ img +'" />'
 	            		+'<p class="name">'+ userlist[key].NickName +'</p>'
 	        			+'</li>';
 				}
@@ -94,16 +94,17 @@ $(function(){
 		data : {},
 		success : function(data){
 			var res = JSON.parse(data);
+			console.log(res);
 			var users = {};//存储username =》 nickname
 			//遍历初始化返回的好友和公众号
 			var userlist = res.MemberList;	
 			var str = '';
 			for (var key in userlist) {
-				var img = 'http://wx.qq.com' + userlist[key].HeadImgUrl;
+				var img = 'index.php?act=avatar&uri=' + escape(userlist[key].HeadImgUrl);
 				var uname = userlist[key].UserName;
 				var nickname = userlist[key].NickName;
 				str += '<li class="active" username="'+ uname +'">'
-            		+'<img class="avatar" width="30" height="30"  src="http://lorempixel.com/30/30/" />'
+            		+'<img class="avatar" width="30" height="30"  src="'+img+'" />'
             		+'<p class="name">'+ nickname +'</p>'
         			+'</li>';
         		users[uname] = nickname;

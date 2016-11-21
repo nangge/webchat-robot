@@ -41,14 +41,17 @@ class wechat {
 	 * @param string $url
 	 * @return string
 	 */
-	function get($url)
+	function get($url = '', $cookie = '')
 	{
 	  $ch = curl_init(); 
 	  curl_setopt($ch, CURLOPT_URL, $url);
 	  curl_setopt($ch, CURLOPT_HEADER, 0);
 	  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 对认证证书来源的检查  
       curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); // 从证书中检查SSL加密算法是否存在 
-	  curl_setopt($ch, CURLOPT_COOKIE, ''); //设置请求COOKIE
+	  if($cookie){
+	    	curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie);
+	    	curl_setopt ($ch, CURLOPT_REFERER,'https://wx.qq.com');
+	    }
 	  curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
 	  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); //将curl_exec()获取的信息以文件流的形式返回，而不是直接输出。
 	  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -56,6 +59,7 @@ class wechat {
 	  curl_close($ch);
 	  return $output;
 	 }
+	 
 	/**
 	 * 发起POST请求
 	 *
@@ -136,7 +140,7 @@ class wechat {
 	* @return mixed
 	**/
 	public function getLoginStatus($uuid = ''){
-		$url = sprintf("https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?uuid=%s&tip=1&_=%s", $uuid, $this->getMillisecond());
+		$url = sprintf("https://login.wx2.qq.com/cgi-bin/mmwebwx-bin/login?uuid=%s&tip=1&_=%s", $uuid, $this->getMillisecond());
 		$res = $this->get($url);
 		preg_match('/=(.*?);/',$res,$match);
 		if($match[1] == 200){
@@ -172,14 +176,17 @@ class wechat {
         if($content==false){
             echo "get_content_null";exit();
         }
+         
         //正则匹配出wxuin、wxsid
-        preg_match('/wxuin=(.*);/iU',$content,$uin); 
+        preg_match('/wxuin=;/iU',$content,$uin); 
         preg_match('/wxsid=(.*);/iU',$content,$sid);
         preg_match('/webwx_data_ticket=(.*);/iU',$content,$webwx);
         //@TODO将wxuin、wxsid、webwx_data_ticket存入cookies，以便获取微信头像----暂无效 
-        /*setcookie('webwx_data_ticket',$webwx[1]);
-        setcookie('wxuin',$uin[1]);
-        setcookie('wxsid',$sid[1]);*/
+        /*if(preg_match_all('/Set-Cookie:[\s]+([^=]+)=([^;]+)/i', $content,$match)) {
+		  foreach ($match[1] as $key => $cookieKey ) {
+		    setcookie($cookieKey,$match[2][$key],'36000','','.wx.qq.com');
+		  }
+		}*/
         //将wxuin、wxsid、webwx_data_ticket存入session
         
         $_SESSION['uin'] = $uin[1];
@@ -274,8 +281,7 @@ class wechat {
 	* @param $toUsername string 
 	* @return mixed
 	**/
-	public function sendMessage($toUsername = '', $content = ''){
-		
+	public function sendMessage($toUsername = '', $content = ''){		
 	    $uin = $_SESSION['uin'];
 	    $sid = $_SESSION['sid'];
 		$cookie = dirname(__FILE__)."/".$_SESSION['uuid'].".cookie";
@@ -300,6 +306,19 @@ class wechat {
 		$res = $this->post($url, json_encode($data,JSON_UNESCAPED_UNICODE),$cookie);
 		return $res;
 	}
+
+	/**
+	* 获取头像
+	* @access public
+	* @param $uri string 头像地址
+	* @return mixed
+	**/
+	public function  getAvatar($uri = ''){
+	    $cookie = dirname(__FILE__)."/".$_SESSION['uuid'].".cookie";
+		$url = "https://wx.qq.com".$uri;
+		$res = $this->get($url, $cookie);
+		echo $res;
+		}
 
 	/**
 	* 图灵机器人 =》文本
